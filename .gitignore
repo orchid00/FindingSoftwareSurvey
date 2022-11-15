@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-FindingSoftwareSurvey.Rproj
+*.Rproj
 # skip data
 data/*csv
 rawdata/*
