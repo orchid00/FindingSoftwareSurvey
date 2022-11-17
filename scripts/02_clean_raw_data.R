@@ -341,6 +341,207 @@ simple_barplot_report(data = researchers_share,
                       fignum = "Fig20",
                       fignam = "How_researchers_share")
 
+# Figure 21. Programming languages long term access----
+col_prog_longterm <- rawdataxl %>% 
+  select(starts_with("list_up_to_3"))
+
+library(writexl)
+
+writexl::write_xlsx(
+  x = list("question" = col_prog_longterm,
+           "total_responses" = as.data.frame(nrow(col_prog_longterm))),
+  path = paste0("dataperquestion/",
+                Sys.Date(), "_", "list_up_to_3_unfiltered",
+                ".xlsx"),
+  format_headers = FALSE)
+
+# filtering and cleaning
+prog_longterm <- rawdataxl %>% 
+  select(starts_with("list_up_to_3")) %>% 
+  rename_at(1, ~"list_up_to_3_prog") %>% 
+  filter(if_any(.cols = everything(), ~ !is.na(.))) %>% 
+  # filter nulls 
+  filter(!list_up_to_3_prog %in% 
+           c("-", "..", "NA", "N/A","na",
+             "Don't know","ddf", "dfg",
+             "I don't know")) %>% 
+  # filter comments without prog languages
+  filter(!str_starts(list_up_to_3_prog, 
+   "I'm not sure|Long term access|The base lan|advanced statistical analysis|All research software|Power line mapping")) %>% 
+  # clean data
+  # change commas for pipes
+  mutate(list_up_to_3_prog = 
+           str_replace_all(list_up_to_3_prog, ",", "|")) %>% 
+  # change semicolons for pipes
+  mutate(list_up_to_3_prog = 
+           str_replace_all(list_up_to_3_prog, ";", "|")) %>% 
+  # remove excess spaces
+  mutate(list_up_to_3_prog = str_squish(list_up_to_3_prog)) %>%
+  # change delete extra mentions of Github or URLs
+  mutate(list_up_to_3_prog = 
+           str_replace_all(list_up_to_3_prog, "\\(on GitHub\\)", "")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, " https://root.cern/", "")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, " https://github.com/ganga-devs/ganga", "")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, "https://github.com/csiro-coasts/", "")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, "https://github.com/geoserver", "")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, "https://github.com/OPENDAP/", "|")) %>%
+  mutate(list_up_to_3_prog = 
+           str_replace(list_up_to_3_prog, "mqAncientHistory/", "")) %>%
+  # change / for pipes
+  mutate(list_up_to_3_prog = 
+           str_replace_all(list_up_to_3_prog, "/", "|")) %>%
+  # separate items per row
+  separate_rows(., list_up_to_3_prog, sep = "\\|")  %>% 
+  # remove empty spaces
+  mutate(list_up_to_3_prog = str_trim(list_up_to_3_prog)) %>% 
+  # remove empty rows
+  filter(list_up_to_3_prog != "") %>% 
+  #remove comments not prog lang
+  filter(!grepl("^Bioinformatics tools|^but am a|^data presentation tools|^etc|^Free Operating Systems|^maybe|^observatory|^social network|^variant calling|^various|^visualisation|^VM|^my own|^Survey", 
+                list_up_to_3_prog)) %>% 
+  # clean names
+  mutate(list_up_to_3_prog = recode(list_up_to_3_prog, 
+         "AI Zoo" = "AI_Model_Zoo",
+         "AntConc SketchEngine"="AntConc|SketchEngine",
+         "apptainer neurodesk" = "apptainer|neurodesk",
+         "arcgis js api and loads of other open web based apps" =
+           "ArcGIS|JavaScript",
+         "Broadly expect needing examples on how to implement ecological models in R or Python"=
+           "R|Python",
+         "C++ & F90 high performance compilers with MP"=
+           "C++|F90",
+         "Code : Python"="Python",
+         "CodeRespositories(GitHub"= "GitHub",
+         "Cytoscape Rstudio"= "Cytoscape|Rstudio",
+         "DB Browser for SQLite"="DB Browser|SQLite",
+         "deep learning libraries (pytorch"="PyTorch",
+         "differential expression) Galaxy (data analysis software) FigShare"=
+           "Galaxy|FigShare",
+         "Enterprise Grafana Plugin for MongoDB" =
+           "Grafana|MongoDB",
+         "Fieldworks Language Explorer" =
+           "FieldWorks",
+         "Finns spatial text and Trove analysis in 'historical fires near me' n github"=
+           "Trove",
+         "Fortran standard library project" ="Fortran",
+         "Gitlab)"="GitLab",
+         "HDF5 libraries"= "HDF5",
+         "htsjdk cromwell rdflib"="HTSJDK|cromwell|RDFLib",
+         "ImageJ and plugins" ="ImageJ",
+         "Julia R Python"="Julia|R|Python",
+         "Julia SQLite JuMP.jl"= "Julia|SQLite|JuMP",
+         "Jupiter lab"="Jupyter",
+         "linux docker"= "Linux|Docker",
+         "Mathematica (Wolfram Research Inc)."="Mathematica",
+         "matlab python"="Matlab|Python",
+         "mne-python"="MNE-Python",
+         "Neurodesk and all tools therein"="Neurodesk",
+         "NVivo spss excel"="NVivo|SPSS|Excel",
+         "Omeka Devonthink Tropy Tinderbox"="Omeka|Devonthink|Tropy|Tinderbox",
+         "OMOP cdm DHIS2"="OMOP|cdm|DHIS2",
+         "PowerBI NVIDIA Omniverse AWS SageMaker"=
+         "PowerBI|NVIDIA|Omniverse|AWS|SageMaker",
+         "PyData software ecosystem"="PyData",
+         "Python - astropy"="Python|astropy",
+         "Python and JavaScript"="Python|JavaScript",
+         "Python ecosystem CASA Askapsoft"=
+           "Python|CASA|ASKAPsoft",
+         "Python pandas"="Python|Pandas",
+         "Qualitative data analysis tools like NVivo."="NVivo",
+         "qualitative"="",
+         "R And many of its packages"="R",
+         "R markdown"="RMarkdown",
+         "R programming language"="R",
+         "R SAS Graph Pad Prism"= "R|SAS|GraphPad_Prism",
+         "R shiny"="shiny",
+         "R."="R", "R Studio"="RStudio",
+         "Redcap SPSS"="REDCap|SPSS",
+         "SAS R Stata"="SAS|R|Stata",
+         "SAS studio and office365"="SAS|office365",
+         "SciPy stack Tidyverse packages for R"=
+           "SciPy|tidyverse|R",
+         "Scripting languages like R"="R",
+         "spectra analysis"="spectra",
+         "SPSS Google Scholar DSpace"="SPSS|Google Scholar|DSpace",
+         "SPSS Stata Nvivo"="SPSS|Stata|NVivo",
+         "standards and tools like open seadragon"="seadragon",
+         "Stata R"="Stata|R",
+         "FreeSurer"="FreeSurfer",
+         "the scientific python ecosystem (scipy"="Python|SciPy",
+         "tidyverse (R)"="tidyverse|R",
+         "twarc sqlite Python"="twarc|SQLite|Python",
+         "Underworld Badlands GPlates"="Underworld|Badlands|GPlates",
+         "Wolfram Language & Mathematica R"="Wolfram|Mathematica|R",
+         "wrf grace numpy" ="wrf|grace|numpy")) %>%
+  # separate items per row
+  separate_rows(., list_up_to_3_prog, sep = "\\|")  %>% 
+  # remove empty rows
+  filter(list_up_to_3_prog != "") %>% 
+  # fix capitalisation
+  mutate(list_up_to_3_prog = recode(list_up_to_3_prog, 
+             "docker" = "Docker",
+             "Elan" = "ELAN",
+             "endnote"="Endnote",
+             "fortran"="Fortran",
+             "Git"="git",
+             "Github"="GitHub",
+             "MATLAB"="Matlab",
+             "Mongodb"="MongoDB",
+             "neurodesk"="Neurodesk",
+             "nextflow"="NextFlow",
+             "Nextflow"="NextFlow",
+             "numpy"="NumPy",
+             "Numpy"="NumPy",
+             "nVivo"="NVivo",
+             "Nvivo"="NVivo",
+             "NVIVO"="NVivo",
+             "pandas"="Pandas",
+             "Phython"="Python",
+             "python"="Python",
+             "pytorch"="PyTorch",
+             "pyGplates"="pyGPlates",
+             "pygplates"="pyGPlates",
+             "quarto"="Quarto",
+             "Rstudio"="RStudio",
+             "scipy"="SciPy",
+             "STATA"="Stata",
+             "tensorflow"="Tensorflow")) %>% 
+  count(list_up_to_3_prog) %>% 
+  arrange(desc(n)) 
+
+writexl::write_xlsx(
+  x = list("question" = prog_longterm,
+           "total_responses" = as.data.frame(nrow(prog_longterm))),
+  path = paste0("dataperquestion/",
+                Sys.Date(), "_", "list_up_to_3_filtered_counts",
+                ".xlsx"),
+  format_headers = FALSE)
+
+ 
+#157 everyone responded 
+# but there are 
+# 1 		-
+# 1     ..
+# 1   	Don't know 
+# 1     ddf
+# 1     dfg
+# 1     I'm not sure I can meaningfully answer this, I use a huge variety of software for numerical modelling, data munging, and analysis.
+# 1     I don't know
+# 1     Long term access is not required.
+# 3     N/A
+# 1     na
+# 1     NA
+# 1     The base languages, I can code anything else. PS: I do have a software engineering BsC, but am a researcher.
+# 1     advanced statistical analysis and modelling packages
+# 1     All research software for my research in the past was available through github
+# 1     Power line mapping gradient topography wind speedand directions
+# 157 - 17 = 140 responses
+
 # Figure 22. Programming languages ----
 source("scripts/helper_functions.R")
 myres <- check_data_for_one_question(data = rawdataxl, 
