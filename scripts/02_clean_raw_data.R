@@ -52,7 +52,7 @@ myres <- check_data_for_one_question(data = rawdataxl,
 write_code <- as_tibble(myres[[1]])
 total_write_code <- as.integer(myres[[2]]) #156
 
-simple_barplot_report(data = rse,
+simple_barplot_report(data = write_code,
                       tit = "Do you write code or / Research software?",
                       subtit = "",
                       fignum = "Fig1",
@@ -119,10 +119,34 @@ myres <- check_data_for_one_question(data = rawdataxl,
 for_codes <- as_tibble(myres[[1]])
 total_for_codes <- as.integer(myres[[2]]) #151
 
+# clean FOR code names
+for_codes1 <- for_codes %>% 
+  mutate(what_are_the_two = str_to_title(what_are_the_two)) %>% 
+  mutate(what_are_the_two = ifelse(!str_detect(what_are_the_two, "[[:digit:]]"),
+           str_replace(what_are_the_two, "^", "NA "),
+           what_are_the_two)) %>%
+  separate(col = what_are_the_two, into = c("FOR_code", "FOR_discipline"),
+            sep = "( )", extra = "merge")
+
+writexl::write_xlsx(
+  x = list("question" = for_codes1,
+           "total_responses" = as.data.frame(total_for_codes)),
+  path = paste0("dataperquestion/",
+                Sys.Date(), "_", "for_codes_clean_names",
+                ".xlsx"),
+  format_headers = FALSE)
+###  
+
 simple_barplot_report(data = for_codes,
                       tit = "What are the Fields of Research (FOR)",
                       subtit = "in which you work",
                       fignum = "Fig2",
+                      fignam = "what_are_the_two")
+
+simple_barplot_report(data = for_codes1,
+                      tit = "What are the Fields of Research (FOR)",
+                      subtit = "in which you work",
+                      fignum = "Fig2_justcodes",
                       fignam = "what_are_the_two")
 
 

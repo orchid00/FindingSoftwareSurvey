@@ -65,7 +65,7 @@ simple_barplot_report <- function(data,
                                       max),
              y = pct)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(round(pct, 2), "%")),
+  geom_text(aes(label = paste0(round(pct, 1), "%")),
             position = position_dodge(width = .9),    # 1move to center of bars
             vjust = -0.5,    # positive nudge above top of bar
             hjust = 1.1,

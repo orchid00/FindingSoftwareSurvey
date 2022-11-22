@@ -280,6 +280,17 @@ count_selection <- function(data, selection_string){
   return(oneq_answers)
   
 }
+
+count_selection_no <- function(data, selection_string){
+  oneq_answers <- data %>% 
+    select(starts_with(selection_string)) %>% 
+    select(ends_with("no")) %>% 
+    drop_na() %>%
+    count() %>% 
+    as.integer()
+  return(oneq_answers)
+  
+}
 ## 2 function Check data for comparison  ----
 
 check_data_for_comparison <- function(data, selection_string, 
@@ -378,3 +389,78 @@ q2 <- as_tibble(test_compare[[2]])
 View(q2)
 fig27 <- as_tibble(test_compare[[3]])
 View(fig27)
+
+# compare answers with one group -----
+compare_one_group <- function(data, selection_string, 
+                                      comparison_group1){
+  
+  total_selection_criteria <- count_selection(data, selection_string)
+  total_group1_yes <- count_selection(data, comparison_group1)
+  total_group1_no <- count_selection_no(data, comparison_group1)
+  print(paste(total_group1_yes, total_group1_no))
+  
+  mygroup1 <- data %>%
+    select(starts_with(comparison_group1))  %>%
+    names() %>%
+    as_vector()
+  print(mygroup1)
+
+  q_answers1 <- data %>% 
+    select(respondent_id,
+           starts_with(selection_string),
+           starts_with(comparison_group1)) %>% 
+    filter(if_any(.cols = everything(), ~ !is.na(.))) %>% 
+    unite(col = "group1", mygroup1,
+          sep = "", na.rm = TRUE) %>% 
+    # merge long
+    pivot_longer(cols = starts_with(selection_string),
+                 names_to = "question",
+                 values_to = "options",
+                 values_drop_na = TRUE) %>% 
+    count(options, group1) %>% 
+    group_by(group1) %>%
+    # add names 
+    rename(!! quo_name(selection_string) := options,
+           !! quo_name(comparison_group1) := group1) %>%
+    mutate(total = ifelse(
+      (do_you_write_code == "Yes"), total_group1_yes, 
+             ifelse(do_you_write_code == "No", total_group1_no, NA)))%>% 
+    mutate(pct = ifelse(
+      (do_you_write_code == "Yes"),round((n*100)/total_group1_yes, 2),
+      ifelse(do_you_write_code == "No", round((n*100)/total_group1_no, 2), NA) )) %>% 
+    arrange(desc(pct))
+  
+  l1 = list(q_answers1 = q_answers1,
+            total_group1_yes = total_group1_yes,
+            total_group1_no = total_group1_no
+  )
+  
+  # #write data 
+  library(writexl)
+  
+  writexl::write_xlsx(
+    x = list("question" = q_answers1,
+             "total_responses_group1_yes" = as.data.frame(total_group1_yes),
+             "total_responses_group1_no" = as.data.frame(total_group1_no)),
+    path = paste0("dataperquestion/",
+                  Sys.Date(), "_", selection_string, "_and_",
+                  comparison_group1, 
+                  ".xlsx"),
+    format_headers = FALSE)
+  
+  return(l1)
+}
+
+
+## fig 16 ----
+catalogue_compare <- compare_one_group(
+  data = rawdataxl, 
+  selection_string = "what_information_would_you_find_most_useful_in",
+  comparison_group1 = "do_you_write_code")
+
+# q1 <- as_tibble(test_compare[[1]])
+# View(q1)
+# q2 <- as_tibble(test_compare[[2]])
+# View(q2)
+# fig27 <- as_tibble(test_compare[[3]])
+# View(fig27)
