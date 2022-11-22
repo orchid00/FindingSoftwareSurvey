@@ -452,15 +452,9 @@ compare_one_group <- function(data, selection_string,
 }
 
 
-## fig 16 ----
+## fig XX ----
 catalogue_compare <- compare_one_group(
   data = rawdataxl, 
   selection_string = "what_information_would_you_find_most_useful_in",
   comparison_group1 = "do_you_write_code")
 
-# q1 <- as_tibble(test_compare[[1]])
-# View(q1)
-# q2 <- as_tibble(test_compare[[2]])
-# View(q2)
-# fig27 <- as_tibble(test_compare[[3]])
-# View(fig27)
