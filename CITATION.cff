@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Finding Software Survey (ARDC)
+message: >-
+  The analysis code provides scripts, subset datasets
+  and reproduced figures along with an interactive
+  environment to reproduce the figures from the
+  Australian Research Data Commons (ARDC) report
+  “Understanding How Researchers Find Research
+  Software for Research Practice” (DOI:
+  https://doi.org/10.5281/zenodo.7340033). Cite this
+  code with the following DOI:
+  https://doi.org/10.5281/zenodo.7353426. The code is
+  provided under MIT licence. 
+type: software
+authors:
+  - given-names: Paula
+    family-names: Martinez
+    email: p.martinez@ardc.edu.au
+    affiliation: Australian Research Data Commons
+    orcid: 'https://orcid.org/0000-0002-8990-1985'
